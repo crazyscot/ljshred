@@ -79,11 +79,27 @@ class LJSession:
         # Possible enhancement: Use a session cookie
         return args
 
-def walk_entries(lj):
+
+def printout(lj,event):
+    ''' Callback which prints out basic information about each entry '''
+    try:
+        subject=event['subject']
+    except KeyError:
+        subject='<no subject>'
+    print '  #%u %s %s' % (event['itemid'], event['eventtime'], subject)
+
+def walk_entries(lj, callback=printout):
     response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
     total = sum([record['count'] for record in response['daycounts']])
-    print 'Total %u entries' % total
-
+    print 'There are %u entries' % total
+    # Now enumerate entries per day
+    for record in response['daycounts']:
+        date = record['date']
+        print '%s has %d entries:' %(date, record['count'])
+        (year, month, day) = date.split('-')
+        evts = lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'day', 'year':year,'month':month,'day':day}))
+        for event in evts['events']:
+            callback(lj,event)
 
 def ljshred_main(testfile=None):
     loginargs = {}

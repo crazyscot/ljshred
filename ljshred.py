@@ -191,12 +191,15 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True):
 
     response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
     total = sum([record['count'] for record in response['daycounts']])
-    print 'There are %u entries' % total
+    if total is 1:
+        print 'There is 1 entry'
+    else:
+        print 'There are %u entries' % total
     # Now enumerate entries per day
     prev = None
     for record in response['daycounts']:
         date = record['date']
-        print '%s has %d entries' %(date, record['count'])
+        print '%s has %d entr%s' %(date, record['count'], 'y' if record['count']==1 else 'ies')
         (year, month, day) = date.split('-')
         evts = lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'day', 'year':year,'month':month,'day':day}))
         for event in evts['events']:

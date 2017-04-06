@@ -45,12 +45,16 @@ class LJSession:
         self.server = xmlrpclib.ServerProxy(URL, verbose=debug)
 
         try:
-            rv = self.server.LJ.XMLRPC.login(self.auth_headers({'clientversion':'shred/0.01'}))
+            rv = self.server.LJ.XMLRPC.login(self.auth_headers({'clientversion':'shred/0.01'}, verbose=verbose))
         except xmlrpclib.Fault as f:
             raise LJError(f)
         # Succeeded
 
-    def auth_headers(self, args={}, verbose=False, debug=False):
+    def auth_headers(self, args={}, verbose=False):
+        '''
+        Add LJ authentication headers (arguments? parameters?) to a given XMLRPC request dictionary.
+        Does a challenge round-trip if it can.
+        '''
         challdict = None
         try:
             if self._do_challenge_response:
@@ -80,7 +84,7 @@ class LJSession:
         return args
 
 
-def printout(lj,event):
+def print_entry(lj,event):
     ''' Callback which prints out basic information about each entry '''
     try:
         subject=event['subject']
@@ -88,7 +92,13 @@ def printout(lj,event):
         subject='<no subject>'
     print '  #%u %s %s' % (event['itemid'], event['eventtime'], subject)
 
-def walk_entries(lj, callback=printout):
+
+def walk_entries(lj, callback=print_entry):
+    '''
+    Enumerates all the entries for a journal, day by day, and calls a
+    callback to do something to each of them
+    '''
+
     response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
     total = sum([record['count'] for record in response['daycounts']])
     print 'There are %u entries' % total
@@ -102,6 +112,7 @@ def walk_entries(lj, callback=printout):
             callback(lj,event)
 
 def ljshred_main(testfile=None):
+    ''' The main part of the program, after the argument parsing '''
     loginargs = {}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.

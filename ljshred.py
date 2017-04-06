@@ -111,8 +111,11 @@ def walk_entries(lj, callback=print_entry):
         for event in evts['events']:
             callback(lj,event)
 
-def ljshred_main(testfile=None):
+def ljshred_main(testfile=None, action_callback=print_entry):
     ''' The main part of the program, after the argument parsing '''
+    # Default, if no mode specified, is just to print:
+    if action_callback is None:
+        action_callback=print_entry
     loginargs = {}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.
@@ -129,7 +132,7 @@ def ljshred_main(testfile=None):
             return 5
 
     lj = LJSession(**loginargs)
-    walk_entries(lj)
+    walk_entries(lj, action_callback)
 
 # 1. What to do (delete, empty, lipsumise, blockout)
 # 2. Whether to leave the last
@@ -137,8 +140,14 @@ def ljshred_main(testfile=None):
 # TODO safety check user is about to overwrite / delete journal entries...
 
 def parse_args(args=sys.argv[1:]):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+            description='Shreds all the entries in a LiveJournal.',
+            epilog='This program is DANGEROUS and IRREVERSIBLE. Use at your own risk.')
     parser.add_argument('-t','--testfile', action='store', dest='testfile')
+
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
+
     return vars(parser.parse_args(args))
 
 if __name__ == '__main__':

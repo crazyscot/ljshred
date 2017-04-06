@@ -147,7 +147,6 @@ def garbagify(s):
 def entry_to_garbage(lj,event):
     '''
     Callback which replaces all the text in an item with random garbage
-    (U+2588)
     '''
     args = {
         'itemid': event['itemid'],

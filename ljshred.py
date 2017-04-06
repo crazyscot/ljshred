@@ -22,7 +22,7 @@ def md5_hex(s):
     return hashlib.md5(s).hexdigest()
 
 class LJSession:
-    def __init__(self, login=None, password=None, verbose=True, debug=False):
+    def __init__(self, login=None, password=None, verbose=True, debug=False, cleartext_password=False):
         '''
         Connect and authenticate to LJ.
         Uses challenge-response authentication if possible, falling back to
@@ -40,7 +40,7 @@ class LJSession:
             password = getpass.getpass()
         self._login = login
         self._password = password
-        self._do_challenge_response = True
+        self._do_challenge_response = not cleartext_password
 
         self.server = xmlrpclib.ServerProxy(URL, verbose=debug)
 
@@ -80,7 +80,7 @@ class LJSession:
             args.update({'auth_method':'clear', 'password':self._password})
 
         args.update({'username': self._login, 'ver':1})
-        # Possible enhancement: Use a session cookie
+        # TODO: enhancement: Use a session cookie
         return args
 
 
@@ -111,12 +111,12 @@ def walk_entries(lj, callback=print_entry):
         for event in evts['events']:
             callback(lj,event)
 
-def ljshred_main(testfile=None, action_callback=print_entry):
+def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False):
     ''' The main part of the program, after the argument parsing '''
     # Default, if no mode specified, is just to print:
     if action_callback is None:
         action_callback=print_entry
-    loginargs = {}
+    loginargs = {'cleartext_password':cleartext_password}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.
         try:
@@ -144,6 +144,7 @@ def parse_args(args=sys.argv[1:]):
             description='Shreds all the entries in a LiveJournal.',
             epilog='This program is DANGEROUS and IRREVERSIBLE. Use at your own risk.')
     parser.add_argument('-t','--testfile', action='store', dest='testfile')
+    parser.add_argument('--cleartext_password', action='store_true')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')

@@ -5,6 +5,8 @@ import xmlrpclib
 import getpass
 import sys
 import hashlib
+import argparse
+import yaml
 
 SITE='livejournal.com'
 URL='https://www.'+SITE+'/interface/xmlrpc'
@@ -82,10 +84,24 @@ def walk_entries(lj):
     total = sum([record['count'] for record in response['daycounts']])
     print 'Total %u entries' % total
 
-def realmain():
-    lj = LJSession()
-    print lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'syncitems','lastsync':'1970-01-01 00:00:00'}))
-# CLI options: (sys.argv)
+
+def ljshred_main(testfile=None):
+    loginargs = {}
+    if testfile is not None:
+        # Attempt to read login data from file.. This is only really intended for testing.
+        try:
+            with open(testfile, 'r') as f:
+                try:
+                    loginargs.update(yaml.load(f))
+                    print 'Logging in as %s with credentials from file'%loginargs['login']
+                except yaml.YAMLError as e:
+                    print e
+                    return 5
+        except IOError as e:
+            print e
+            return 5
+
+    lj = LJSession(**loginargs)
     walk_entries(lj)
 
 # 1. What to do (delete, empty, lipsumise, blockout)
@@ -93,9 +109,14 @@ def realmain():
 
 # TODO safety check user is about to overwrite / delete journal entries...
 
+def parse_args(args=sys.argv[1:]):
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t','--testfile', action='store', dest='testfile')
+    return vars(parser.parse_args(args))
+
 if __name__ == '__main__':
     try:
-        realmain()
+        ljshred_main(**parse_args())
     except LJError as e:
         print e
 

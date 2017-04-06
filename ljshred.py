@@ -143,8 +143,8 @@ def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
             description='Shreds all the entries in a LiveJournal.',
             epilog='This program is DANGEROUS and IRREVERSIBLE. Use at your own risk.')
-    parser.add_argument('-t','--testfile', action='store', dest='testfile')
-    parser.add_argument('--cleartext_password', action='store_true')
+    parser.add_argument('-t','--testfile', action='store', dest='testfile', help='Provides a file of test data')
+    parser.add_argument('--cleartext_password', action='store_true', help='Sends the password in (nearly) clear text, which is faster but less secure')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')

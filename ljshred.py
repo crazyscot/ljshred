@@ -188,12 +188,29 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True):
     if include_the_last_one:
         callback(lj,event)
 
+def dire_warning():
+    print '''
+====== DANGER, LASER GUIDED DRAGONS =================================
+
+This program makes irreversible changes to the contents of your LiveJournal
+account.
+
+THERE IS NO UNDO FUNCTION.
+
+Do not run this program "just to see what it does".
+It does what it says on the tin. It DESTROYS YOUR DATA.
+
+If you are sure you want to do this, type the phrase:
+    I want to destroy my data
+and press Enter.
+        '''
+    shibboleth = raw_input('Are you sure? ')
+    if shibboleth.strip() != u'I want to destroy my data':
+        sys.exit(1)
+    print 'OK, proceeding. Don\'t say you weren\'t warned.'
+
 def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True):
     ''' The main part of the program, after the argument parsing '''
-    # Default, if no mode specified, is just to print:
-    if action_callback is None:
-        action_callback=print_entry
-    loginargs = {'cleartext_password':cleartext_password}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.
         try:
@@ -207,6 +224,13 @@ def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=
         except IOError as e:
             print e
             return 5
+    # Default, if no mode specified, is just to print:
+    if action_callback is None:
+        action_callback=print_entry
+    if action_callback is not print_entry:
+        dire_warning()
+
+    loginargs['cleartext_password']=cleartext_password
 
     lj = LJSession(**loginargs)
     walk_entries(lj, action_callback, not except_latest)

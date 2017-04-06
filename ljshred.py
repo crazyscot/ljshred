@@ -203,8 +203,8 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True):
             if prev is not None:
                 callback(lj, prev)
             prev = event
-    if include_the_last_one:
-        callback(lj,event)
+    if include_the_last_one and prev is not None:
+        callback(lj,prev)
 
 def dire_warning():
     print '''
@@ -230,6 +230,7 @@ and press Enter.
 def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True):
     ''' The main part of the program, after the argument parsing '''
     testargs = {}
+    loginargs = {}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.
         try:

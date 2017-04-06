@@ -25,6 +25,7 @@ def md5_hex(s):
     return hashlib.md5(s).hexdigest()
 
 class LJSession:
+    VALID_ARGS=['login', 'password', 'verbose', 'debug', 'cleartext_password']
     def __init__(self, login=None, password=None, verbose=True, debug=False, cleartext_password=False):
         '''
         Connect and authenticate to LJ.
@@ -211,31 +212,34 @@ and press Enter.
 
 def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True):
     ''' The main part of the program, after the argument parsing '''
+    testargs = {}
     if testfile is not None:
         # Attempt to read login data from file.. This is only really intended for testing.
         try:
             with open(testfile, 'r') as f:
                 try:
-                    loginargs.update(yaml.load(f))
-                    print 'Logging in as %s with credentials from file'%loginargs['login']
+                    testargs.update(yaml.load(f))
+                    print 'Logging in as %s with credentials from file'%testargs['login']
                 except yaml.YAMLError as e:
                     print e
                     return 5
         except IOError as e:
             print e
             return 5
+        loginargs = { k: testargs[k]
+                for k in testargs
+                if k in LJSession.VALID_ARGS }
+
     # Default, if no mode specified, is just to print:
     if action_callback is None:
         action_callback=print_entry
-    if action_callback is not print_entry:
+    if action_callback is not print_entry and 'i_want_to_destroy_my_data' not in testargs:
         dire_warning()
 
     loginargs['cleartext_password']=cleartext_password
 
     lj = LJSession(**loginargs)
     walk_entries(lj, action_callback, not except_latest)
-
-# TODO safety check user is about to overwrite / delete journal entries...
 
 def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(

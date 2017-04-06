@@ -165,7 +165,7 @@ def entry_to_garbage(lj,event):
     lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
     # response data ignored
 
-def walk_entries(lj, callback=print_entry):
+def walk_entries(lj, callback=print_entry, include_the_last_one=True):
     '''
     Enumerates all the entries for a journal, day by day, and calls a
     callback to do something to each of them
@@ -175,15 +175,20 @@ def walk_entries(lj, callback=print_entry):
     total = sum([record['count'] for record in response['daycounts']])
     print 'There are %u entries' % total
     # Now enumerate entries per day
+    prev = None
     for record in response['daycounts']:
         date = record['date']
         print '%s has %d entries' %(date, record['count'])
         (year, month, day) = date.split('-')
         evts = lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'day', 'year':year,'month':month,'day':day}))
         for event in evts['events']:
-            callback(lj,event)
+            if prev is not None:
+                callback(lj, prev)
+            prev = event
+    if include_the_last_one:
+        callback(lj,event)
 
-def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False):
+def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True):
     ''' The main part of the program, after the argument parsing '''
     # Default, if no mode specified, is just to print:
     if action_callback is None:
@@ -204,10 +209,7 @@ def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=
             return 5
 
     lj = LJSession(**loginargs)
-    walk_entries(lj, action_callback)
-
-# 1. What to do (delete, lipsumise, blockout, random)
-# 2. Whether to leave the last
+    walk_entries(lj, action_callback, not except_latest)
 
 # TODO safety check user is about to overwrite / delete journal entries...
 
@@ -217,6 +219,7 @@ def parse_args(args=sys.argv[1:]):
             epilog='This program is DANGEROUS and IRREVERSIBLE. Use at your own risk.')
     parser.add_argument('-t','--testfile', action='store', dest='testfile', help=argparse.SUPPRESS)
     parser.add_argument('--cleartext_password', action='store_true', help='Sends the password in (nearly) clear text, which is faster but less secure')
+    parser.add_argument('--except-latest', action='store_true', help='Doesn\'t affect the latest entry')
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')

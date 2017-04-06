@@ -165,6 +165,24 @@ def entry_to_garbage(lj,event):
     lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
     # response data ignored
 
+def delete_entry(lj,event):
+    '''
+    Callback which deletes entry
+    '''
+    args = {
+        'itemid': event['itemid'],
+        'event': '',
+        'lineendings':'\n',
+        }
+
+    # For good practise we will propagate security settings, even though the entry should be deleted.
+    for kw in ['allowmask', 'props', 'security']:
+        if kw in event:
+            args[kw] = event[kw]
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+    # response data ignored
+
+
 def walk_entries(lj, callback=print_entry, include_the_last_one=True):
     '''
     Enumerates all the entries for a journal, day by day, and calls a
@@ -252,6 +270,7 @@ def parse_args(args=sys.argv[1:]):
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
     group.add_argument('--block-out', dest='action_callback', action='store_const', const=entry_to_blocks, help='Replaces all non-whitespace text in all entries with a solid block character')
     group.add_argument('--random-garbage', dest='action_callback', action='store_const', const=entry_to_garbage, help='Replaces entries with random garbage text')
+    group.add_argument('--delete', dest='action_callback', action='store_const', const=delete_entry, help='Deletes entries')
 
     return vars(parser.parse_args(args))
 

@@ -8,6 +8,8 @@ import hashlib
 import argparse
 import yaml
 import re
+import string
+import random
 
 SITE='livejournal.com'
 URL='https://www.'+SITE+'/interface/xmlrpc'
@@ -132,6 +134,37 @@ def entry_to_blocks(lj,event):
     lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
     # response data ignored
 
+GARBAGE = string.letters + string.digits
+
+def garbagify(s):
+    ''' Replaces all the non-whitespace in a string with garbage '''
+    s = re.sub(r"\S", '?', s, flags=re.UNICODE)
+    rv = ''.join([ (random.choice(GARBAGE) if c=='?' else c) for c in s ])
+    return str(rv)
+
+
+def entry_to_garbage(lj,event):
+    '''
+    Callback which replaces all the text in an item with random garbage
+    (U+2588)
+    '''
+    args = {
+        'itemid': event['itemid'],
+        'event': garbagify(xmlrpc_to_unicode(event['event'])),
+        'lineendings':'\n',
+        }
+
+    try:
+        args['subject'] = garbagify(xmlrpc_to_unicode(event['subject']))
+    except KeyError: # subject not in entry
+        pass
+
+    for kw in ['allowmask', 'props', 'security']:
+        if kw in event:
+            args[kw] = event[kw]
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+    # response data ignored
+
 def walk_entries(lj, callback=print_entry):
     '''
     Enumerates all the entries for a journal, day by day, and calls a
@@ -188,6 +221,7 @@ def parse_args(args=sys.argv[1:]):
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
     group.add_argument('--block-out', dest='action_callback', action='store_const', const=entry_to_blocks, help='Replaces all non-whitespace text in all entries with a solid block character')
+    group.add_argument('--random-garbage', dest='action_callback', action='store_const', const=entry_to_garbage, help='Replaces entries with random garbage text')
 
     return vars(parser.parse_args(args))
 

@@ -7,6 +7,7 @@ import sys
 import hashlib
 import argparse
 import yaml
+import re
 
 SITE='livejournal.com'
 URL='https://www.'+SITE+'/interface/xmlrpc'
@@ -92,6 +93,44 @@ def print_entry(lj,event):
         subject='<no subject>'
     print '  #%u %s %s' % (event['itemid'], event['eventtime'], subject)
 
+def xmlrpc_to_unicode(xm):
+    '''
+        Converts a str or xmlrpc.Binary into a unicode string.
+        (xmlrpc might pass us either.)
+    '''
+    if xm.__class__ is 's'.__class__:
+        xm = unicode(xm)
+    elif xm.__class__ is xmlrpclib.Binary: # unicode, utf-8 encoded
+        xm = xm.data.decode('utf-8')
+    else:
+        raise TypeError('Data is unknown type %s'%xm.__class__)
+    return xm
+
+def entry_to_blocks(lj,event):
+    '''
+    Callback which replaces all the text in an item with solid-block glyphs
+    (U+2588)
+    '''
+    text = xmlrpc_to_unicode(event['event'])
+    text = re.sub(r"\S", unichr(0x2588), text, flags=re.UNICODE)
+    args = {
+        'itemid': event['itemid'],
+        'event': text,
+        'lineendings':'\n',
+        }
+
+    try:
+        subject = xmlrpc_to_unicode(event['subject'])
+        subject = re.sub(r"\S", unichr(0x2588), subject, flags=re.UNICODE)
+        args['subject'] = subject
+    except KeyError: # subject not in entry
+        pass
+
+    for kw in ['allowmask', 'props', 'security']:
+        if kw in event:
+            args[kw] = event[kw]
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+    # response data ignored
 
 def walk_entries(lj, callback=print_entry):
     '''
@@ -105,7 +144,7 @@ def walk_entries(lj, callback=print_entry):
     # Now enumerate entries per day
     for record in response['daycounts']:
         date = record['date']
-        print '%s has %d entries:' %(date, record['count'])
+        print '%s has %d entries' %(date, record['count'])
         (year, month, day) = date.split('-')
         evts = lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'day', 'year':year,'month':month,'day':day}))
         for event in evts['events']:
@@ -134,7 +173,7 @@ def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=
     lj = LJSession(**loginargs)
     walk_entries(lj, action_callback)
 
-# 1. What to do (delete, empty, lipsumise, blockout)
+# 1. What to do (delete, lipsumise, blockout, random)
 # 2. Whether to leave the last
 
 # TODO safety check user is about to overwrite / delete journal entries...
@@ -148,6 +187,7 @@ def parse_args(args=sys.argv[1:]):
 
     group = parser.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
+    group.add_argument('--block-out', dest='action_callback', action='store_const', const=entry_to_blocks, help='Replaces all non-whitespace text in all entries with a solid block character')
 
     return vars(parser.parse_args(args))
 

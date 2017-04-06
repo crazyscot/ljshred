@@ -77,12 +77,17 @@ class LJSession:
         # Possible enhancement: Use a session cookie
         return args
 
+def walk_entries(lj):
+    response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
+    total = sum([record['count'] for record in response['daycounts']])
+    print 'Total %u entries' % total
+
 def realmain():
     lj = LJSession()
     print lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'syncitems','lastsync':'1970-01-01 00:00:00'}))
-    # Enumerate entries
-    pass
 # CLI options: (sys.argv)
+    walk_entries(lj)
+
 # 1. What to do (delete, empty, lipsumise, blockout)
 # 2. Whether to leave the last
 

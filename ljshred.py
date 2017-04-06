@@ -39,7 +39,7 @@ class LJSession:
         if password is None:
             password = getpass.getpass()
         self._login = login
-        self._password = password
+        self._hpassword = md5_hex(password)
         self._do_challenge_response = not cleartext_password
 
         self.server = xmlrpclib.ServerProxy(URL, verbose=debug)
@@ -73,11 +73,11 @@ class LJSession:
         if self._do_challenge_response:
             if verbose:
                 print 'Using challenge-response'
-            response = md5_hex(challdict['challenge'] + md5_hex(self._password))
+            response = md5_hex(challdict['challenge'] + self._hpassword)
             args.update({'auth_method':'challenge', 'auth_challenge':challdict['challenge'], 'auth_response':response})
         else:
             # Fall back to cleartext
-            args.update({'auth_method':'clear', 'password':self._password})
+            args.update({'auth_method':'clear', 'hpassword':self._hpassword})
 
         args.update({'username': self._login, 'ver':1})
         # TODO: enhancement: Use a session cookie

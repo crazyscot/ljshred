@@ -10,6 +10,7 @@ import yaml
 import re
 import string
 import random
+import time
 
 SITE='livejournal.com'
 URL='https://www.'+SITE+'/interface/xmlrpc'
@@ -189,7 +190,7 @@ def delete_entry(lj,event):
     # response data ignored
 
 
-def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date=None, end_date=None):
+def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date=None, end_date=None, throttle_time=3):
     '''
     Enumerates all the entries for a journal, day by day, and calls a
     callback to do something to each of them
@@ -216,6 +217,7 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date
             if prev is not None:
                 callback(lj, prev)
             prev = event
+            time.sleep(throttle_time)
     if include_the_last_one and prev is not None:
         callback(lj,prev)
 

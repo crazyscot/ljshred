@@ -189,7 +189,7 @@ def delete_entry(lj,event):
     # response data ignored
 
 
-def walk_entries(lj, callback=print_entry, include_the_last_one=True):
+def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date=None, end_date=None):
     '''
     Enumerates all the entries for a journal, day by day, and calls a
     callback to do something to each of them
@@ -205,6 +205,10 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True):
     prev = None
     for record in response['daycounts']:
         date = record['date']
+        if start_date is not None and start_date > date:
+            continue
+        if end_date is not None and date > end_date:
+            continue
         print '%s has %d entr%s' %(date, record['count'], 'y' if record['count']==1 else 'ies')
         (year, month, day) = date.split('-')
         evts = lj.server.LJ.XMLRPC.getevents(lj.auth_headers({'selecttype':'day', 'year':year,'month':month,'day':day}))
@@ -236,7 +240,7 @@ and press Enter.
         sys.exit(1)
     print 'OK, proceeding. Don\'t say you weren\'t warned.'
 
-def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True):
+def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True, start_date=None, end_date=None):
     ''' The main part of the program, after the argument parsing '''
     testargs = {}
     loginargs = {}
@@ -266,7 +270,7 @@ def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=
     loginargs['cleartext_password']=cleartext_password
 
     lj = LJSession(**loginargs)
-    walk_entries(lj, action_callback, not except_latest)
+    walk_entries(lj, action_callback, not except_latest, start_date, end_date)
 
 def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -275,6 +279,8 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument('-t','--testfile', action='store', dest='testfile', help=argparse.SUPPRESS)
     parser.add_argument('--cleartext_password', action='store_true', help='Sends the password in (nearly) clear text, which is faster but less secure')
     parser.add_argument('--except-latest', action='store_true', help='Doesn\'t affect the latest entry')
+    parser.add_argument('--start-date', action='store', dest='start_date', help='If given, starts shredding at the given date (e.g. 2017-12-31)', metavar='YYYY-MM-DD')
+    parser.add_argument('--end-date', action='store', dest='end_date', help='If given, stops shredding at the given date', metavar='YYYY-MM-DD')
 
     group1 = parser.add_argument_group('Action modes (specify one)')
     group = group1.add_mutually_exclusive_group()

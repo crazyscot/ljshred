@@ -276,7 +276,8 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument('--cleartext_password', action='store_true', help='Sends the password in (nearly) clear text, which is faster but less secure')
     parser.add_argument('--except-latest', action='store_true', help='Doesn\'t affect the latest entry')
 
-    group = parser.add_mutually_exclusive_group()
+    group1 = parser.add_argument_group('Action modes (specify one)')
+    group = group1.add_mutually_exclusive_group()
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
     group.add_argument('--block-out', dest='action_callback', action='store_const', const=entry_to_blocks, help='Replaces all non-whitespace text in all entries with a solid block character')
     group.add_argument('--random-garbage', dest='action_callback', action='store_const', const=entry_to_garbage, help='Replaces entries with random garbage text')

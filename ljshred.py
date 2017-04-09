@@ -142,7 +142,7 @@ def garbagify(s):
     ''' Replaces all the non-whitespace in a string with garbage '''
     s = re.sub(r"\S", '?', s, flags=re.UNICODE)
     rv = ''.join([ (random.choice(GARBAGE) if c=='?' else c) for c in s ])
-    return str(rv)
+    return rv.encode('utf-8')
 
 
 def entry_to_garbage(lj,event):

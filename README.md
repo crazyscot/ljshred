@@ -2,9 +2,16 @@ This is a horribly dangerous tool, the only purpose of which is to actively
 destroy the content of a LiveJournal account. I wrote it so I could remove
 my content from LJ in protest at the April 2017 ToS change.
 
-It's a Python script. I don't offer any support or warranty. You use it at your own risk.
+**You must have clicked-to-accept the LJ ToS change in order to use this
+tool!** The API is locked out until you log in in person and click the box.
+(Note that if you routinely disable JavaScript, you probably need to enable
+it for the clickwrap license to work.)
 
-It's a command-line tool. You have to have Python 2.7 installed.
+This is a Python script. I don't offer any support or warranty. You use it at your own risk.
+
+If you're installing Python just to use it, you need version 2.7.
+Thi is a command-line tool; I don't believe you need any extension libraries.
+
 You will be prompted for your LJ login and password, and asked to accept that it's a dangerous
 program which will destroy your data.
 
@@ -36,6 +43,7 @@ As the program runs you get a progress report. The --start-date option is
 provided so you can pick up where you left off if you encounter errors.
 
 ~~~~
+$ python ljshred.py --help
 usage: ljshred.py [-h] [--cleartext_password] [--except-latest]
                   [--start-date YYYY-MM-DD] [--end-date YYYY-MM-DD]
                   [--throttle-time THROTTLE_TIME]

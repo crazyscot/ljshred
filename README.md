@@ -4,9 +4,11 @@ my content from LJ in protest at the April 2017 ToS change.
 
 It's a Python script. I don't offer any support or warranty. You use it at your own risk.
 
-It's a command-line script. You have to have Python 2.7 installed.
+It's a command-line tool. You have to have Python 2.7 installed.
+You will be prompted for your LJ login and password, and asked to accept that it's a dangerous
+program which will destroy your data.
 
-You have to explicitly tell the script what you want to do with your entries.
+You have to explicitly tell the script what you want to do to your entries.
 The modes are:
 
 * `--block-out` to replace all non-whitespace text with the unicode block character '█' (U+2588)

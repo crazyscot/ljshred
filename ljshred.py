@@ -194,6 +194,7 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date
     callback to do something to each of them
     '''
 
+    throttle_time=float(throttle_time)
     response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
     total = sum([record['count'] for record in response['daycounts']])
     if total is 1:
@@ -240,7 +241,7 @@ and press Enter.
         sys.exit(1)
     print 'OK, proceeding. Don\'t say you weren\'t warned.'
 
-def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True, start_date=None, end_date=None):
+def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=False, except_latest=True, start_date=None, end_date=None, throttle_time=None):
     ''' The main part of the program, after the argument parsing '''
     testargs = {}
     loginargs = {}
@@ -270,7 +271,7 @@ def ljshred_main(testfile=None, action_callback=print_entry, cleartext_password=
     loginargs['cleartext_password']=cleartext_password
 
     lj = LJSession(**loginargs)
-    walk_entries(lj, action_callback, not except_latest, start_date, end_date)
+    walk_entries(lj, action_callback, not except_latest, start_date, end_date, throttle_time)
 
 def parse_args(args=sys.argv[1:]):
     parser = argparse.ArgumentParser(
@@ -281,6 +282,7 @@ def parse_args(args=sys.argv[1:]):
     parser.add_argument('--except-latest', action='store_true', help='Doesn\'t affect the latest entry')
     parser.add_argument('--start-date', action='store', dest='start_date', help='If given, starts shredding at the given date (e.g. 2017-12-31)', metavar='YYYY-MM-DD')
     parser.add_argument('--end-date', action='store', dest='end_date', help='If given, stops shredding at the given date', metavar='YYYY-MM-DD')
+    parser.add_argument('--throttle-time', action='store', dest='throttle_time', help='Attempts to defeat the LJ API posting limit by waiting this many seconds (default 3) between successive entry updates.')
 
     group1 = parser.add_argument_group('Action modes (specify one)')
     group = group1.add_mutually_exclusive_group()

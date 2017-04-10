@@ -25,6 +25,14 @@ date, mood, userpic, entry tags and comments are left unchanged.
 **NOTE:** If you are importing your content to another site, you should make
 sure that that import has finished before you run this tool.
 
+This program will take some time to run. LJ does not allow an account to make
+or update too many posts too quickly so there is a throttle-time option
+(default 3 seconds, which worked for me).  With a small number of entries you
+can set it to 0.
+
+As the program runs you get a progress report. The --start-date option is
+provided so you can pick up where you left off if you encounter errors.
+
 ~~~~
 usage: ljshred.py [-h] [--cleartext_password] [--except-latest]
                   [--start-date YYYY-MM-DD] [--end-date YYYY-MM-DD]

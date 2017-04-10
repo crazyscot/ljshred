@@ -229,7 +229,11 @@ def walk_entries(lj, callback=print_entry, include_the_last_one=True, start_date
     callback to do something to each of them
     '''
 
-    throttle_time=float(throttle_time)
+    try:
+        throttle_time=float(throttle_time)
+    except TypeError:
+        throttle_time=3.0
+
     response = lj.server.LJ.XMLRPC.getdaycounts(lj.auth_headers({'mode':'getdaycounts'}))
     total = sum([record['count'] for record in response['daycounts']])
     if total is 1:

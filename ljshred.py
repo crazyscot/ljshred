@@ -99,15 +99,13 @@ def print_entry(lj,event):
 
 def xmlrpc_to_unicode(xm):
     '''
-        Converts a str or xmlrpc.Binary into a unicode string.
-        (xmlrpc might pass us either.)
+        Converts data received from xmlrpc into a unicode string.
+        (xmlrpc might pass us a str, a Binary or even an int...)
     '''
-    if xm.__class__ is 's'.__class__:
-        xm = unicode(xm)
-    elif xm.__class__ is xmlrpclib.Binary: # unicode, utf-8 encoded
+    if xm.__class__ is xmlrpclib.Binary: # unicode, utf-8 encoded
         xm = xm.data.decode('utf-8')
     else:
-        raise TypeError('Data is unknown type %s'%xm.__class__)
+        xm = unicode(xm)
     return xm
 
 def entry_to_blocks(lj,event):

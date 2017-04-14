@@ -161,6 +161,22 @@ def standard_args_for(event, subject, text):
         args['subject'] = subject
     return args
 
+def chickenise(lj,event):
+    '''
+    Callback which replaces words with "chicken", leaving punctuation (non-word characters) untouched.
+    The naive implementation corrupts any HTML tags found within, so they are removed.
+    '''
+    text = xmlrpc_to_unicode(event['event'])
+    text = re.sub(r"\w+", 'chicken', text, flags=re.UNICODE)
+    text = re.sub(r"<[^<]*>", '', text, flags=re.UNICODE)
+    try:
+        subject = xmlrpc_to_unicode(event['subject'])
+        subject = re.sub(r"\w+", 'chicken', subject, flags=re.UNICODE)
+    except KeyError: # subject not in entry
+        subject = None
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(standard_args_for(event, subject, text)))
+    # response data ignored
+
 def entry_to_blocks(lj,event):
     '''
     Callback which replaces all the text in an item with solid-block glyphs
@@ -195,7 +211,7 @@ def entry_to_garbage(lj,event):
     lj.server.LJ.XMLRPC.editevent(lj.auth_headers(standard_args_for(event, subject, garbagify(xmlrpc_to_unicode(event['event'])))))
     # response data ignored
 
-MIXED_MODE_MODELIST=[entry_to_garbage, entry_to_blocks]
+MIXED_MODE_MODELIST=[entry_to_garbage, entry_to_blocks, chickenise]
 
 def mixed_mode(lj,event):
     ''' Randomly calls on to another mode '''
@@ -314,7 +330,8 @@ def parse_args(args=sys.argv[1:]):
     group.add_argument('--printout', dest='action_callback', action='store_const', const=print_entry, help='Only prints out all the entries it would touch, doesn\'t actually change anything.')
     group.add_argument('--block-out', dest='action_callback', action='store_const', const=entry_to_blocks, help='Replaces all non-whitespace text in all entries with a solid block character')
     group.add_argument('--random-garbage', dest='action_callback', action='store_const', const=entry_to_garbage, help='Replaces entries with random garbage text')
-    group.add_argument('--mixed-mode', dest='action_callback', action='store_const', const=mixed_mode, help='A mixture of --random-garbage and --block-out modes')
+    group.add_argument('--chicken', dest='action_callback', action='store_const', const=chickenise, help='Replaces all words with the word "chicken"')
+    group.add_argument('--mixed-mode', dest='action_callback', action='store_const', const=mixed_mode, help='Applies one of --random-garbage, --block-out or --chicken to each entry in turn')
     group.add_argument('--delete', dest='action_callback', action='store_const', const=delete_entry, help='Deletes entries')
 
     return vars(parser.parse_args(args))

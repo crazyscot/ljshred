@@ -120,3 +120,9 @@ There are 1723 entries
 2003-01-01 has 3 entries
 ~~~~
 *(output truncated for brevity)*
+
+# FAQs #
+
+**What does it mean to zalgoise text?**
+
+*Adding a bunch of Unicode combining characters which smear over the top of the existing text. For example: ![Zalgoised text example](zalgo-example.png)*

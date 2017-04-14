@@ -143,6 +143,24 @@ def xmlrpc_to_unicode(xm):
         xm = unicode(xm)
     return xm
 
+def standard_args_for(event, subject, text):
+    '''
+    Returns a list of args for an event.
+    _text_ is the entry text, _subject_ is the subject (may be None)
+    '''
+    args = {
+        'itemid': event['itemid'],
+        'event': text,
+        'lineendings':'\n',
+        }
+    # For good practise we will propagate security settings
+    for kw in ['allowmask', 'props', 'security']:
+        if kw in event:
+            args[kw] = event[kw]
+    if subject is not None:
+        args['subject'] = subject
+    return args
+
 def entry_to_blocks(lj,event):
     '''
     Callback which replaces all the text in an item with solid-block glyphs
@@ -150,23 +168,12 @@ def entry_to_blocks(lj,event):
     '''
     text = xmlrpc_to_unicode(event['event'])
     text = re.sub(r"\S", unichr(0x2588), text, flags=re.UNICODE)
-    args = {
-        'itemid': event['itemid'],
-        'event': text,
-        'lineendings':'\n',
-        }
-
     try:
         subject = xmlrpc_to_unicode(event['subject'])
         subject = re.sub(r"\S", unichr(0x2588), subject, flags=re.UNICODE)
-        args['subject'] = subject
     except KeyError: # subject not in entry
-        pass
-
-    for kw in ['allowmask', 'props', 'security']:
-        if kw in event:
-            args[kw] = event[kw]
-    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+        subject = None
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(standard_args_for(event, subject, text)))
     # response data ignored
 
 GARBAGE = string.letters + string.digits
@@ -177,26 +184,15 @@ def garbagify(s):
     rv = ''.join([ (random.choice(GARBAGE) if c=='?' else c) for c in s ])
     return rv.encode('utf-8')
 
-
 def entry_to_garbage(lj,event):
     '''
     Callback which replaces all the text in an item with random garbage
     '''
-    args = {
-        'itemid': event['itemid'],
-        'event': garbagify(xmlrpc_to_unicode(event['event'])),
-        'lineendings':'\n',
-        }
-
     try:
-        args['subject'] = garbagify(xmlrpc_to_unicode(event['subject']))
+        subject = garbagify(xmlrpc_to_unicode(event['subject']))
     except KeyError: # subject not in entry
-        pass
-
-    for kw in ['allowmask', 'props', 'security']:
-        if kw in event:
-            args[kw] = event[kw]
-    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+        subject = None
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(standard_args_for(event, subject, garbagify(xmlrpc_to_unicode(event['event'])))))
     # response data ignored
 
 MIXED_MODE_MODELIST=[entry_to_garbage, entry_to_blocks]
@@ -209,17 +205,7 @@ def delete_entry(lj,event):
     '''
     Callback which deletes entry
     '''
-    args = {
-        'itemid': event['itemid'],
-        'event': '',
-        'lineendings':'\n',
-        }
-
-    # For good practise we will propagate security settings, even though the entry should be deleted.
-    for kw in ['allowmask', 'props', 'security']:
-        if kw in event:
-            args[kw] = event[kw]
-    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(args))
+    lj.server.LJ.XMLRPC.editevent(lj.auth_headers(standard_args_for(event, None, '')))
     # response data ignored
 
 

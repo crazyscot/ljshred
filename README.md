@@ -20,6 +20,8 @@ The options are:
 * `--block-out` to replace all non-whitespace text with the unicode block character '█' (U+2588)
 * `--random-garbage` to replace all non-whitespace text with randomly chosen letters and numbers
 * `--mixed-mode` to randomly choose whether to block-out or random-garbage each entry in turn
+* `--chicken` to replace all words with the word "chicken"
+* `--zalgo` to zalgoise the text
 * `--delete` to just delete the entry text, which has the effect of deleting the entry completely.
 * `--printout` is a test mode which doesn't change anything.
 
@@ -125,4 +127,4 @@ There are 1723 entries
 
 **What does it mean to zalgoise text?**
 
-*Adding a bunch of Unicode combining characters which smear over the top of the existing text. For example: ![Zalgoised text example](zalgo-example.png)*
+*Adding a bunch of Unicode combining characters which smear over the top of the existing text. Something like this. ![Zalgoised text example](zalgo-example.png)*

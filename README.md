@@ -128,3 +128,7 @@ There are 1723 entries
 **What does it mean to zalgoise text?**
 
 *Adding a bunch of Unicode combining characters which smear over the top of the existing text. Something like this. ![Zalgoised text example](zalgo-example.png)*
+
+**Why does my zalgoised text look different to yours?**
+
+*Not all web browsers support Unicode combining characters properly. Chrome on Linux doesn't, showing a load of boxes; Firefox seems OK. Chrome and Safari on OSX show the characters but don't combine them correctly. I haven't tried any other combinations.*

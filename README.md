@@ -54,7 +54,7 @@ $ python ljshred.py --help
 usage: ljshred.py [-h] [--cleartext_password] [--except-latest]
                   [--start-date YYYY-MM-DD] [--end-date YYYY-MM-DD]
                   [--throttle-time THROTTLE_TIME]
-                  [--printout | --block-out | --random-garbage | --mixed-mode | --delete]
+                  [--printout | --block-out | --random-garbage | --chicken | --mixed-mode | --delete | --zalgo]
 
 Shreds all the entries in a LiveJournal.
 
@@ -79,8 +79,14 @@ Action modes (specify one):
   --block-out           Replaces all non-whitespace text in all entries with a
                         solid block character
   --random-garbage      Replaces entries with random garbage text
-  --mixed-mode          A mixture of --random-garbage and --block-out modes
+  --chicken             Replaces all words with the word "chicken"
+  --mixed-mode          Applies one of --random-garbage, --block-out or
+                        --chicken to each entry in turn
   --delete              Deletes entries
+  --zalgo               Zalgoises the text (adds a bunch of Unicode combining
+                        characters which smear a mess over them). This
+                        conversion is largely reversible, and it doesn't look
+                        very good in all browsers.
 
 This program is DANGEROUS and IRREVERSIBLE. Use at your own risk.
 ~~~~
